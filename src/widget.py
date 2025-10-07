@@ -2,6 +2,7 @@ from datetime import datetime
 
 
 def mask_account_card(card_account_number: str) -> str:
+    """Функция принимает номер карты или номер счета, возвращает маскированный номер"""
     if card_account_number[:4] == "Счет":
         account_id = card_account_number[4:]
         masked_account_id = "Счет **" + account_id[-4:]
@@ -15,5 +16,6 @@ def mask_account_card(card_account_number: str) -> str:
 
 
 def get_date(date_str: str) -> str:
+    """Функция принимает дату в формате ISO, возвращает дату в формате дд.мм.гг"""
     dt = datetime.fromisoformat(date_str)
     return dt.strftime("%d.%m.%Y")
