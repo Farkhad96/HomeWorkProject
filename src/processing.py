@@ -5,8 +5,17 @@ def filter_by_state(data: List[Dict], state: str = "EXECUTED") -> List[Dict]:
     """
     Функция фильтрует список словарей по значению ключа 'state'.
 
-    :param data: Список словарей для фильтрации.
-    :param state: Значение для ключа 'state' (по умолчанию 'EXECUTED').
-    :return: Новый список словарей, соответствующих указанному значению ключа 'state'.
+    data: Список словарей для фильтрации.
+    state: Значение для ключа 'state' (по умолчанию 'EXECUTED').
     """
     return [item for item in data if item.get("state") == state]
+def sort_by_date(data: List[Dict], descending: bool = True) -> List[Dict]:
+    """
+    Функция сортирует список словарей по дате.
+
+    data: Список словарей для сортировки. Каждый словарь должен содержать ключ 'date'.
+    descending: Параметр, определяющий порядок сортировки (по умолчанию True — убывание).
+    """
+
+    # Сортировка списка словарей по дате
+    return sorted(data, key=lambda x: x['date'], reverse=descending)
