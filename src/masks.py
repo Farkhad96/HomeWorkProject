@@ -10,4 +10,3 @@ def get_mask_account(account_id: str) -> str:
     """Функция принимает номер счета, возвращает маскированный номер"""
     masked_account_id = "**" + account_id[-4:]
     return masked_account_id
-
