@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Any, Dict
 
 import pytest
 
@@ -6,7 +6,7 @@ from src.processing import filter_by_state, sort_by_date
 
 
 @pytest.fixture
-def data(request):
+def data(request: Any) -> Any:
     return request.param
 
 
@@ -56,7 +56,7 @@ def test_filter_by_state(data: Dict) -> None:
 
 
 @pytest.fixture
-def data_sort(request):
+def data_sort(request: Any) -> Any:
     return request.param
 
 
