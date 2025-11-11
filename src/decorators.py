@@ -1,45 +1,49 @@
-# decorators.py
-import logging
-import functools
-import time
+import traceback
+from datetime import datetime
+from functools import wraps
 
 
-def setup_logging(filename=None):
-    """Настройка логирования."""
-    if filename:
-        logging.basicConfig(filename=filename, level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-    else:
-        logging.basicConfig(level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
-
-
-def log(filename=None):
-    """Декоратор для логирования информации о функции."""
-    setup_logging(filename)  # Настраиваем логирование
+def log(_func=None, *, filename=None):
+    """
+    Декоратор для логирования вызовов функций, их возвратов и исключений.
+    Логи пишутся в консоль или в указанный файл.
+    """
 
     def decorator(func):
-        @functools.wraps(func)  # Сохраняем метаданные функции
+        @wraps(func)
         def wrapper(*args, **kwargs):
-            logging.info(f"Начало выполнения функции '{func.__name__}' с аргументами: args={args}, kwargs={kwargs}")
-            start_time = time.time()
+            def _write(line: str):
+                if filename is None:
+                    print(line)
+                else:
+                    with open(filename, "a", encoding="utf-8") as f:
+                        f.write(line + "\n")
 
+            # Время вызова и аргументы
+            called_at = datetime.now()
+            args_str = ", ".join([*(repr(a) for a in args), *(f"{k}={v!r}" for k, v in kwargs.items())])
+            _write(f"[{called_at:%Y-%m-%d %H:%M:%S}] CALL   {func.__name__}({args_str})")
+            start = called_at
             try:
-                # Выполняем функцию и сохраняем результат
                 result = func(*args, **kwargs)
-                logging.info(f"Функция '{func.__name__}' завершена успешно. Результат: {result}")
+                elapsed_ms = (datetime.now() - start).total_seconds() * 1000
+                _write(
+                    f"[{datetime.now():%Y-%m-%d %H:%M:%S}] RETURN {func.__name__} -> {result!r} "
+                    f"(elapsed {elapsed_ms:.2f} ms)"
+                )
                 return result
             except Exception as e:
-                # Логируем информацию об ошибке
-                logging.error(
-                    f"Ошибка в функции '{func.__name__}': {type(e).__name__} - {e}. Аргументы: args={args}, kwargs={kwargs}")
-                raise  # Перебрасываем исключение дальше
-            finally:
-                # Логируем время выполнения функции
-                end_time = time.time()
-                execution_time = end_time - start_time
-                logging.info(f"Время выполнения функции '{func.__name__}': {execution_time:.4f} секунд")
+                elapsed_ms = (datetime.now() - start).total_seconds() * 1000
+                _write(
+                    f"[{datetime.now():%Y-%m-%d %H:%M:%S}] ERROR  {func.__name__}: "
+                    f"{type(e).__name__}: {e} | args=({args_str}) "
+                    f"(elapsed {elapsed_ms:.2f} ms)"
+                )
+                _write("".join(traceback.format_exc()).rstrip())
+                raise
 
         return wrapper
 
-    return decorator
+    if _func is None:
+        return decorator
+    return decorator(_func)
