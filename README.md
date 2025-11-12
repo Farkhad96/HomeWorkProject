@@ -62,7 +62,7 @@ for _ in range(2):
               "to": "Счет 75651667383060284188"
        }
 ```
-```commandline
+```
 for card_number in card_number_generator(1, 5):
     print(card_number)
 
@@ -72,7 +72,7 @@ for card_number in card_number_generator(1, 5):
     0000 0000 0000 0004
     0000 0000 0000 0005
 ```
-```commandline
+```
 descriptions = transaction_descriptions(transactions)
 for _ in range(5):
     print(next(descriptions))
