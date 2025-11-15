@@ -19,7 +19,7 @@ def amount_of_transaction_in_ruble(transaction: dict) -> float:
     amount = transaction.get("operationAmount").get("amount")
     if transaction.get("operationAmount").get("currency").get("code") == "RUB":
         amount_rub = amount
-        return amount_rub
+        return float(amount_rub)
     else:
         convert_to = "RUB"
         convert_from = transaction.get("operationAmount").get("currency").get("code")
@@ -35,7 +35,7 @@ def amount_of_transaction_in_ruble(transaction: dict) -> float:
         else:
             # print(f"Запрос не был успешным. Возможная причина: {response.reason}")
             amount_rub = 0
-    return amount_rub
+    return float(amount_rub)
 
 
 """

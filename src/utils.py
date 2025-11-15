@@ -19,10 +19,9 @@ def load_transactions(file_path: str) -> List[Dict[str, Any]]:
     """
     try:
         with open(file_path, "r", encoding="utf-8") as f:
-            content = f.read().strip()
-            if not content:
+            data = json.load(f)
+            if not data:
                 return []
-            data = json.loads(content)
             if isinstance(data, list):
                 return data
             return []
