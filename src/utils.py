@@ -25,11 +25,11 @@ def _row_to_transaction(row: pd.Series) -> Dict[str, Any]:
         return None if pd.isna(value) else value
 
     return {
-        "id": int(row["id"]),
+        "id": str(row["id"]),
         "state": str(row["state"]),
         "date": str(row["date"]),
         "operationAmount": {
-            "amount": float(row["amount"]),
+            "amount": str(row["amount"]),
             "currency": {
                 "name": str(row["currency_name"]),
                 "code": str(row["currency_code"]),
