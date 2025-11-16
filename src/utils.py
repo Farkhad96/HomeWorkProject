@@ -133,7 +133,7 @@ def load_transactions_excel(file_path: str) -> List[Dict[str, Any]]:
 def load_transactions(file_path: str) -> List[Dict[str, Any]]:
     """
     Универсальная функция:
-    - *.json  → load_transactions
+    - *.json  → load_transactions_json
     - *.csv   → load_transactions_csv
     - *.xlsx  → load_transactions_excel
 
