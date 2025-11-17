@@ -1,99 +1,141 @@
-from typing import Any, Dict
+from collections import Counter
 
 import pytest
 
-from src.processing import filter_by_state, sort_by_date
+from src.processing import filter_by_state, process_bank_operations, process_bank_search, sort_by_date
 
 
 @pytest.fixture
-def data(request: Any) -> Any:
-    return request.param
+def sample_transactions():
+    return [
+        {
+            "id": 1,
+            "state": "EXECUTED",
+            "date": "2024-11-10T12:00:00",
+            "description": "Оплата услуг связи",
+        },
+        {
+            "id": 2,
+            "state": "CANCELED",
+            "date": "2023-01-01T09:00:00",
+            "description": "Перевод клиенту",
+        },
+        {
+            "id": 3,
+            "state": "EXECUTED",
+            "date": "2024-01-15T08:30:00",
+            "description": "Оплата налогов",
+        },
+        {
+            "id": 4,
+            "state": "PENDING",
+            "date": "2022-05-20T20:10:00",
+            "description": "Перевод между своими счетами",
+        },
+        {
+            "id": 5,
+            "state": "EXECUTED",
+            "date": "2024-12-31T23:59:59",
+            "description": "Покупка продуктов",
+        },
+    ]
 
 
-values_for_test = [
-    (
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-        "EXECUTED",
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-        ],
-    ),
-    (
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-        "CANCELED",
-        [
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-    ),
-    (
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-        "",
-        [],
-    ),
-]
+# ---------- filter_by_state ----------
 
 
-@pytest.mark.parametrize("data", values_for_test, indirect=True)
-def test_filter_by_state(data: Dict) -> None:
-    assert filter_by_state(data[0], data[1]) == data[2]
+def test_filter_by_state_default(sample_transactions):
+    result = filter_by_state(sample_transactions)  # по умолчанию EXECUTED
+    assert len(result) == 3
+    assert all(item["state"] == "EXECUTED" for item in result)
 
 
-@pytest.fixture
-def data_sort(request: Any) -> Any:
-    return request.param
+def test_filter_by_state_specific(sample_transactions):
+    result = filter_by_state(sample_transactions, "CANCELED")
+    assert len(result) == 1
+    assert all(item["state"] == "CANCELED" for item in result)
 
 
-values_for_test_sort = [
-    (
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-        True,
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-        ],
-    ),
-    (
-        [
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-        ],
-        False,
-        [
-            {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
-            {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
-            {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
-            {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
-        ],
-    ),
-]
+def test_filter_by_state_not_found(sample_transactions):
+    result = filter_by_state(sample_transactions, "UNKNOWN")
+    assert result == []
 
 
-@pytest.mark.parametrize("data_sort", values_for_test_sort, indirect=True)
-def test_sort_by_date(data_sort: Dict) -> None:
-    assert sort_by_date(data_sort[0], data_sort[1]) == data_sort[2]
+# ---------- sort_by_date ----------
+
+
+def test_sort_by_date_descending(sample_transactions):
+    result = sort_by_date(sample_transactions, descending=True)
+    dates = [item["date"] for item in result]
+    # проверяем, что даты отсортированы по убыванию
+    assert dates == sorted(dates, reverse=True)
+
+
+def test_sort_by_date_ascending(sample_transactions):
+    result = sort_by_date(sample_transactions, descending=False)
+    dates = [item["date"] for item in result]
+    # проверяем, что даты отсортированы по возрастанию
+    assert dates == sorted(dates)
+
+
+def test_sort_by_date_empty_list():
+    result = sort_by_date([])
+    assert result == []
+
+
+# ---------- process_bank_search ----------
+
+
+def test_process_bank_search_found(sample_transactions):
+    result = process_bank_search(sample_transactions, "оплата")
+    # должны найти "Оплата услуг связи" и "Оплата налогов"
+    descriptions = [item["description"].lower() for item in result]
+    assert len(result) == 2
+    assert "оплата услуг связи" in descriptions
+    assert "оплата налогов" in descriptions
+
+
+def test_process_bank_search_case_insensitive(sample_transactions):
+    result = process_bank_search(sample_transactions, "ПЕРЕВОД")
+    descriptions = [item["description"].lower() for item in result]
+    assert len(result) == 2
+    assert "перевод клиенту" in descriptions
+    assert "перевод между своими счетами" in descriptions
+
+
+def test_process_bank_search_not_found(sample_transactions):
+    result = process_bank_search(sample_transactions, "несуществующая строка")
+    assert result == []
+
+
+# ---------- process_bank_operations ----------
+
+
+def test_process_bank_operations_basic(sample_transactions):
+    categories = [
+        "Оплата услуг связи",
+        "Оплата налогов",
+        "Покупка продуктов",
+    ]
+    result = process_bank_operations(sample_transactions, categories)
+
+    # ожидаем Counter с количеством по категориям
+    assert isinstance(result, Counter)
+    assert result["Оплата услуг связи"] == 1
+    assert result["Оплата налогов"] == 1
+    assert result["Покупка продуктов"] == 1
+    # категорий, которых нет в данных, быть не должно
+    assert "Перевод клиенту" not in result
+
+
+def test_process_bank_operations_no_categories_match(sample_transactions):
+    categories = ["Аренда жилья", "Путешествия"]
+    result = process_bank_operations(sample_transactions, categories)
+    assert isinstance(result, Counter)
+    assert result == Counter()
+
+
+def test_process_bank_operations_empty_transactions():
+    result = process_bank_operations([], ["Категория"])
+    assert isinstance(result, Counter)
+    assert result == Counter()

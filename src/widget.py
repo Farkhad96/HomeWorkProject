@@ -10,8 +10,9 @@ list_of_card_names: list = [
     "Visa Platinum",
     "Visa Gold",
     "Troy",
-    "Mir",
-    "American express",
+    "МИР",
+    "American Express",
+    "Discover",
 ]
 
 

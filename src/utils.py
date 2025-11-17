@@ -1,12 +1,36 @@
+from __future__ import annotations
+
 import json
 import logging
+from pathlib import Path
 from typing import Any, Dict, List
 
 import pandas as pd
 
+
+def find_project_root(start: str | Path | None = None) -> Path:
+    """
+    Ищет вверх от start (или от текущего файла) папку,
+    где есть pyproject.toml — считаем её корнем проекта.
+    """
+    if start is None:
+        start = __file__
+
+    path = Path(start).resolve()
+
+    for parent in [path] + list(path.parents):
+        if (parent / "pyproject.toml").is_file():
+            return parent
+
+    raise RuntimeError("Не удалось найти корень проекта (нет pyproject.toml)")
+
+
+# пример использования:
+PROJECT_ROOT = find_project_root()
+
 logger = logging.getLogger("utils")
 logger.setLevel(logging.INFO)
-file_handler = logging.FileHandler("../logs/utils.log", mode="w", encoding="utf-8")
+file_handler = logging.FileHandler(PROJECT_ROOT / "logs" / "utils.log", mode="w", encoding="utf-8")
 file_formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s : %(message)s")
 file_handler.setFormatter(file_formatter)
 logger.addHandler(file_handler)
@@ -82,7 +106,7 @@ def load_transactions_csv(file_path: str) -> List[Dict[str, Any]]:
     """
     logger.info(f"Функция load_transactions_csv приняла на вход {file_path}")
     try:
-        df = pd.read_csv(file_path, sep=";")
+        df = pd.read_csv(file_path, sep=";", dtype=str)
     except FileNotFoundError as ex:
         logger.info(f"Файл не найден: {ex}")
         return []
