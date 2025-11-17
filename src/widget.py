@@ -1,21 +1,56 @@
 from datetime import datetime
 
+import src.masks
+
+list_of_card_names: list = [
+    "Счет",
+    "Maestro",
+    "MasterCard",
+    "Visa Classic",
+    "Visa Platinum",
+    "Visa Gold",
+    "Troy",
+    "МИР",
+    "American Express",
+    "Discover",
+]
+
+
+def is_iso_datetime(s: str) -> bool:
+    """Функция проверяет дату га соответствие формату ISO"""
+    try:
+        datetime.fromisoformat(s)
+        return True
+    except ValueError:
+        return False
+
 
 def mask_account_card(card_account_number: str) -> str:
     """Функция принимает номер карты или номер счета, возвращает маскированный номер"""
-    if card_account_number[:4] == "Счет":
-        account_id = card_account_number[4:]
-        masked_account_id = "Счет **" + account_id[-4:]
-        return masked_account_id
+    card_number = ""
+    for i in range(len(card_account_number)):
+        if card_account_number[-i - 1].isdigit():
+            card_number = card_account_number[-i - 1] + card_number
+        else:
+            break
+    if card_account_number[: -1 - len(card_number)] not in list_of_card_names:
+        return "Данные некорректные"
+    if card_account_number[: -1 - len(card_number)] == "Счет":
+        result_account_number = src.masks.get_mask_account(card_number)
+        if result_account_number == "Неправильно набран номер":
+            return "Данные некорректные"
+        return "Счет " + result_account_number
     else:
-        card_number = card_account_number[-16:]
-        masked_card_number = card_number[:6] + "******" + card_number[-4:]
-        chunks = [masked_card_number[i : i + 4] for i in range(0, len(masked_card_number), 4)]
-        resulting_masked_card_number: str = card_account_number[:-16] + " ".join(chunks)
-        return resulting_masked_card_number
+        result_card_number = src.masks.get_mask_card_number(card_number)
+        if result_card_number == "Неправильно набран номер":
+            return "Данные некорректные"
+        return card_account_number[: -len(card_number)] + result_card_number
 
 
 def get_date(date_str: str) -> str:
     """Функция принимает дату в формате ISO, возвращает дату в формате дд.мм.гг"""
-    dt = datetime.fromisoformat(date_str)
-    return dt.strftime("%d.%m.%Y")
+    if is_iso_datetime(date_str):
+        dt = datetime.fromisoformat(date_str)
+        return dt.strftime("%d.%m.%Y")
+    else:
+        return "Данные некорректные"
